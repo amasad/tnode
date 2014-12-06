@@ -3,18 +3,15 @@
  * A lot of this entry file is based off of node's src/node.js.
  */
 
-var regenerator = require('regenerator');
+var compile = require('./index.js').compile;
 
 // grab a reference to the entry point script, then clean up the env
-var entryPoint = process.env.GNODE_ENTRY_POINT;
-delete process.env.GNODE_ENTRY_POINT;
-
-// load the custom `.js` ES6 Generator compiler
-require('./index.js');
+var entryPoint = process.env.TNODE_ENTRY_POINT;
+delete process.env.TNODE_ENTRY_POINT;
 
 // overwrite process.execPath and process.argv[0] with the
 // absolute path to the gnode binary
-process.execPath = process.argv[0] = require('path').resolve(__dirname, 'bin', 'gnode');
+process.execPath = process.argv[0] = require('path').resolve(__dirname, 'bin', 'tnode');
 
 // remove "fallback.js" from `process.argv`
 process.argv.splice(1, 1);
@@ -34,7 +31,7 @@ if (process._eval != null) {
   if (process._forceRepl || require('tty').isatty(0)) {
     // REPL
     var opts = {
-      'eval': gnodeEval,
+      'eval': tnodeEval,
       useGlobal: true,
       ignoreUndefined: false
     };
@@ -67,14 +64,12 @@ if (process._eval != null) {
 }
 
 // custom eval() function for the REPL, that first compiles
-function gnodeEval (code, context, file, fn) {
+function tnodeEval (code, context, file, fn) {
   var err, result;
   try {
-    // compile JS via facebook/regenerator
-    code = regenerator.compile(code, {
-      includeRuntime: 'object' !== typeof regeneratorRuntime
-    }).code;
+    code = compile(code);
   } catch (e) {
+    console.error(e)
     // Treat regenerator errors as syntax errors in repl.
     // A hack to have repl interpret certain js structures correctly.
     e.name = 'SyntaxError'
@@ -104,10 +99,7 @@ function evalScript (name) {
   module.paths = Module._nodeModulePaths(cwd);
   var script = process._eval;
 
-  // compile JS via facebook/regenerator
-  script = regenerator.compile(script, {
-    includeRuntime: 'object' !== typeof regeneratorRuntime
-  }).code;
+  script = compile(script).code;
 
   if (!Module._contextLoad) {
     var body = script;

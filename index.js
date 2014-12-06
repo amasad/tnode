@@ -1,48 +1,27 @@
+var transform = require('jstransform').transform;
+var typesSyntax = require('jstransform/visitors/type-syntax');
+var fs = require('fs');
 
-/**
- * Only apply the global .js require() hook if:
- *
- *   1) ES6 Generators are not already supported in the environment
- *   2) The require.extensions['.js'] hook is not already patched by gnode
- */
-
-if (!hasNativeGenerators() && !isPatchedByGnode()) {
-
+// Only apply the global .js require() hook if the require.extensions['.js']
+// hook is not already patched by tnode.
+if (!isPatchedByTnode()) {
   /**
-   * Module dependencies.
-   */
-
-  var fs = require('fs');
-  var regenerator = require('regenerator');
-  var genFunExp = /\bfunction\s*\*/;
-
-  /**
-   * First include the regenerator runtime. It gets installed gloablly as
-   * `regeneratorRuntime`, so we just need to make sure that global
-   * function is available.
-   */
-
-  regenerator.runtime();
-
-  /**
-   * Entry point for node versions that don't have Generator support.
-   *
    * This file replaces the default `.js` require.extensions implementation with
-   * one that first compiles the JavaScript code via "facebook/regenerator".
+   * one that first compiles the JavaScript code via "jstransform".
    *
    * Once that is in place then it loads the original entry point .js file.
    */
 
-  require.extensions['.js'] = gnodeJsExtensionCompiler;
+  require.extensions['.js'] = tnodeJsExtensionCompiler;
 }
 
 /**
- * ES6 Generators enabled `require.extensions['.js']` hook.
+ * Type syntax enabled `require.extensions['.js']` hook.
  *
  * @api public
  */
 
-function gnodeJsExtensionCompiler (module, filename) {
+function tnodeJsExtensionCompiler (module, filename) {
   var content = fs.readFileSync(filename, 'utf8');
 
   // remove the Byte Order Marker if present
@@ -51,15 +30,24 @@ function gnodeJsExtensionCompiler (module, filename) {
   // strip away the shebang if present
   content = stripShebang(content);
 
-  if (genFunExp.test(content) && !isValid(content)) {
-    // compile JS via facebook/regenerator
-    content = regenerator.compile(content, {
-      includeRuntime: 'object' !== typeof regeneratorRuntime
-    }).code;
+  if (!isValid(content)) {
+    content = compile(content);
   }
 
   module._compile(content, filename);
 }
+
+/**
+ * Strips type syntax
+ *
+ * @api public
+ */
+
+function compile(code) {
+  return transform(typesSyntax.visitorList, code).code;
+}
+
+exports.compile = compile;
 
 function isValid(content) {
   try {
@@ -100,27 +88,11 @@ function stripShebang (content) {
 }
 
 /**
- * Tests if the environment supports ES6 Generators.
- *
- * @api private
- */
-
-function hasNativeGenerators () {
-  var has = false;
-  try {
-    eval('(function*(){})');
-    has = true;
-  } catch (e) {
-  }
-  return has;
-}
-
-/**
  * Check if require.extensions['.js'] is already patched by gnode
  *
  * @api private
  */
 
-function isPatchedByGnode () {
+function isPatchedByTnode () {
   return 'gnodeJsExtensionCompiler' == require.extensions['.js'].name;
 }

@@ -1,0 +1,77 @@
+#!/usr/bin/env node
+
+var spawn = require('child_process').spawn;
+var node = process.execPath || process.argv[0];
+var compile = require('../').compile;
+
+var argv = (process.execArgv || []).slice(0);
+var argsStart = 2;
+
+for (var i = argsStart; i < process.argv.length; i++) {
+  var arg = process.argv[i];
+  var isFlag = '-' == arg[0];
+  if (isFlag) {
+    argv.push(arg);
+    if (/^-[ep]$/.test(arg)) {
+      // handle gnode -e|-p "console.log('script')"
+      var code = process.argv[i + 1];
+      code = compile(code);
+      argv.push(code);
+      // skip arg, we just processed it
+      i++;
+    }
+    argsStart++;
+  } else {
+    break;
+  }
+}
+
+argv.push(require('path').resolve(__dirname, '..', 'fallback.js'));
+
+// store a reference to the entry point, so that fallback.js can pick it up
+if (process.argv.length > argsStart) {
+  process.env.TNODE_ENTRY_POINT = process.argv[argsStart];
+}
+
+argsStart++;
+
+// add the rest of the arguments specified by the user
+if (process.argv.length >= argsStart) {
+  argv.push.apply(argv, process.argv.slice(argsStart));
+}
+
+if (parseInt(process.env.TNODE_PRINT_ARGS, 10)) {
+  // print out the arguments that will be passed in for debugging purposes
+  console.error(argv);
+}
+
+var opts = {
+  customFds: [ 0, 1, 2 ],
+  stdio: 'inherit'
+};
+
+// spawn a new node process with the necessary flags
+var child = spawn(node, argv, opts);
+child.on('exit', onexit);
+
+/**
+ * Main node subprocess "exit" event handler.
+ * Proxies the exit code up to this process.
+ *
+ * @api private
+ */
+
+function onexit(code, signal) {
+  if (signal) {
+    process.kill(process.pid, signal);
+  } else if (0 !== code) {
+    if (null == process.exitCode) {
+      // old node, no `process.exitCode` support...
+      process.exit(code);
+    } else {
+      // newer node, we can set `process.exitCode`
+      // and let the process exit naturally
+      process.exitCode = code;
+    }
+  }
+}

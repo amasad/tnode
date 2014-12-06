@@ -1,36 +1,31 @@
 {
-  "name": "gnode",
+  "name": "tnode",
   "version": "0.1.0",
-  "description": "Run node with ES6 Generators, today!",
+  "description": "Run Flow type annotated code in node.",
   "main": "index.js",
-  "bin": "bin/gnode",
+  "bin": "bin/tnode",
   "scripts": {
     "test": "node test"
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/TooTallNate/gnode.git"
+    "url": "git://github.com/amasad/tnode.git"
   },
   "keywords": [
     "node",
-    "generators",
-    "es6",
-    "facebook",
-    "regenerator",
-    "co"
+    "flow",
+    "types"
   ],
-  "author": "Nathan Rajlich <nathan@tootallnate.net> (http://n8.io/)",
+  "author": "amasad <amjad.masad@gmail.com> (http://amasad.me)",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/TooTallNate/gnode/issues"
+    "url": "https://github.com/amasad/tnode/issues"
   },
   "dependencies": {
-    "regenerator": "~0.6.3"
+    "jstransform": "^8.2.0"
   },
   "devDependencies": {
-    "co": "~2.1.0",
     "mocha": "~1.13.0",
-    "semver": "~2.2.1",
-    "suspend": "~0.3.0"
+    "semver": "~2.2.1"
   }
 }

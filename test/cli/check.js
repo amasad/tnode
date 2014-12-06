@@ -1,12 +1,7 @@
-
 var assert = require('assert');
 
-// assert up here to ensure that hoisting works as expected
-assert('gen' == gen.name);
-assert('GeneratorFunction' == gen.constructor.name);
+function x(a: string, b: number): number {
+  return b;
+}
 
-function *gen () {}
-
-var g = gen();
-assert('function' == typeof g.next);
-assert('function' == typeof g.throw);
+assert.equal(x('a', 1), 1);

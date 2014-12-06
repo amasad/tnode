@@ -1,6 +1,6 @@
 
 /**
- * This cli.js test file tests the `gnode` wrapper executable via
+ * This cli.js test file tests the `tnode` wrapper executable via
  * `child_process.spawn()`. Generator syntax is *NOT* enabled for these
  * test cases.
  */
@@ -12,7 +12,7 @@ var spawn = require('child_process').spawn;
 
 // node executable
 var node = process.execPath || process.argv[0];
-var gnode = path.resolve(__dirname, '..', 'bin', 'gnode');
+var tnode = path.resolve(__dirname, '..', 'bin', 'tnode');
 
 // chdir() to the "test" dir, so that relative test filenames work as expected
 process.chdir(path.resolve(__dirname, 'cli'));
@@ -38,14 +38,14 @@ describe('command line interface', function () {
 
   cli([ 'check.js' ], 'should quit with a SUCCESS exit code', function (child, done) {
     child.on('exit', function (code) {
-      assert(code == 0, 'gnode quit with exit code: ' + code);
+      assert(code == 0, 'tnode quit with exit code: ' + code);
       done();
     });
   });
 
   cli([ 'nonexistant.js' ], 'should quit with a FAILURE exit code', function (child, done) {
     child.on('exit', function (code) {
-      assert(code != 0, 'gnode quit with exit code: ' + code);
+      assert(code != 0, 'tnode quit with exit code: ' + code);
       done();
     });
   });
@@ -61,47 +61,33 @@ describe('command line interface', function () {
     });
   });
 
-  cli([ '--harmony_generators', 'check.js' ], 'should not output the "unrecognized flag" warning', function (child, done) {
-    var async = 2;
-    buffer(child.stderr, function (err, data) {
-      if (err) return done(err);
-      assert(!/unrecognized flag/.test(data), 'got stderr data: ' + JSON.stringify(data));
-      --async || done();
-    });
-    child.on('exit', function (code) {
-      assert(code == 0, 'gnode quit with exit code: ' + code);
-      --async || done();
-    });
-  });
-
   cli([], 'should work properly over stdin', function (child, done) {
     child.stdin.end(
       'var assert = require("assert");' +
-      'function *test () {};' +
-      'var t = test();' +
-      'assert("function" == typeof t.next);' +
-      'assert("function" == typeof t.throw);'
+      'function test (a: number) { return a};' +
+      'var t = test(a);' +
+      'assert(1 == a);'
     );
     child.on('exit', function (code) {
-      assert(code == 0, 'gnode quit with exit code: ' + code);
+      assert(code == 0, 'tnode quit with exit code: ' + code);
       done();
     });
   });
 
-  if (!/^v0.8/.test(process.version)) cli(['-p', 'function *test () {yield 3}; test().next().value;'], 'should print result with -p', function (child, done) {
+  if (!/^v0.8/.test(process.version)) cli(['-p', 'function test (a: number) {return a}; test(3)'], 'should print result with -p', function (child, done) {
     var async = 2
     buffer(child.stdout, function (err, data) {
       if (err) return done(err);
-      assert('3' == data.trim(), 'gnode printed ' + data);
+      assert('3' == data.trim(), 'tnode printed ' + data);
       --async || done();
     });
     child.on('exit', function (code) {
-      assert(code == 0, 'gnode quit with exit code: ' + code);
+      assert(code == 0, 'tnode quit with exit code: ' + code);
       --async || done();
     });
   });
 
-  cli(['-e', 'function *test () {yield 3}; console.log(test().next().value);'], 'should print result with -p', function (child, done) {
+  cli(['-e', 'function test (a: number) {return a}; console.log(test(3));'], 'should print result with -p', function (child, done) {
     var async = 2
     buffer(child.stdout, function (err, data) {
       if (err) return done(err);
@@ -110,23 +96,11 @@ describe('command line interface', function () {
     });
 
     child.on('exit', function (code) {
-      assert(code == 0, 'gnode quit with exit code: ' + code);
+      assert(code == 0, 'tnode quit with exit code: ' + code);
       --async || done();
     });
   });
 
-  cli(['--harmony_generators', '-e', 'function *test () {yield 3}; console.log(test().next().value);'], 'should print result with -e', function (child, done) {
-    var async = 2
-    buffer(child.stdout, function (err, data) {
-      if (err) return done(err);
-      assert('3' == data.trim(), 'gnode printed ' + data);
-      --async || done();
-    });
-    child.on('exit', function (code) {
-      assert(code == 0, 'gnode quit with exit code: ' + code);
-      --async || done();
-    });
-  });
 
   cli(['-e', 'console.log(JSON.stringify(process.argv))', 'a', 'b', 'c'], 'should pass additional arguments after -e', function (child, done) {
     var async = 2
@@ -137,7 +111,7 @@ describe('command line interface', function () {
       --async || done();
     });
     child.on('exit', function (code) {
-      assert(code == 0, 'gnode quit with exit code: ' + code);
+      assert(code == 0, 'tnode quit with exit code: ' + code);
       --async || done();
     });
   });
@@ -145,9 +119,9 @@ describe('command line interface', function () {
 
 
 function cli (argv, name, fn) {
-  describe('gnode ' + argv.join(' '), function () {
+  describe('tnode ' + argv.join(' '), function () {
     it(name, function (done) {
-      var child = spawn(node, [ gnode ].concat(argv));
+      var child = spawn(node, [ tnode ].concat(argv));
       fn(child, done);
     });
   });
