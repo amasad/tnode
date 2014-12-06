@@ -1,9 +1,8 @@
 tnode
 =====
 ### Run Flow type annotated code in node
-[![Build Status](https://travis-ci.org/amasad/tnode.png?branch=master)](https://travis-ci.org/amasad/tnode)
 
-`tnode` is a very light wrapper around your `node` executable that strips [http://flowtype.org/docs/type-annotations.html#_](Flow type annotation syntax) from your code before
+`tnode` is a very light wrapper around your `node` executable that strips [Flow type annotation syntax](http://flowtype.org/docs/type-annotations.html#_) from your code before
 calling into node.
 
 You use it exactly like the regular `node` executable.
@@ -51,5 +50,5 @@ var wow = require('./someTypedCode');
 Thanks to gnode!
 ----------------
 
-This is a fork of [https://github.com/TooTallNate/gnode](`gnode`) that is
+This is a fork of [`gnode`](https://github.com/TooTallNate/gnode) that is
 modified to work with Flow type syntax.
