@@ -69,7 +69,6 @@ function tnodeEval (code, context, file, fn) {
   try {
     code = compile(code);
   } catch (e) {
-    console.error(e)
     // Treat regenerator errors as syntax errors in repl.
     // A hack to have repl interpret certain js structures correctly.
     e.name = 'SyntaxError'
